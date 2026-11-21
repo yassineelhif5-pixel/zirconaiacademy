@@ -1,6 +1,6 @@
-import "../learning-dashboard.css";
-
 "use client";
+
+import "../learning-dashboard.css";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
