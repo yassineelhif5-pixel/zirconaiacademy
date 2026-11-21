@@ -1,6 +1,9 @@
+import logging
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAdminUser
@@ -9,6 +12,7 @@ from rest_framework.views import APIView
 
 from .models import ProductInterest, TrainingRegistration
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -76,12 +80,49 @@ class AdminRegistrationUpdateView(APIView):
 
     def patch(self, request, registration_id):
         item = get_object_or_404(TrainingRegistration, pk=registration_id)
+        previous_status = item.status
+        previous_date = item.confirmed_date
         serializer = AdminRegistrationUpdateSerializer(item, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         for key, value in serializer.validated_data.items():
             setattr(item, key, value)
         item.save(update_fields=[*serializer.validated_data.keys()])
-        return Response(registration_payload(item))
+
+        notification_sent = False
+        changed = item.status != previous_status or item.confirmed_date != previous_date
+        if changed and item.email and getattr(settings, "EMAIL_HOST", ""):
+            if item.status == "confirmed":
+                subject = "Votre formation ProjectAcademy est confirmée"
+                message = (
+                    f"Bonjour {item.full_name},\n\n"
+                    f"Votre demande pour {item.get_training_display()} est acceptée. "
+                    f"Votre session est planifiée le {item.confirmed_date:%d/%m/%Y}.\n\n"
+                    "Connectez-vous à votre espace apprenant pour retrouver les informations.\n"
+                    "L'équipe ProjectAcademy"
+                )
+            elif item.status == "cancelled":
+                subject = "Mise à jour de votre demande ProjectAcademy"
+                message = (
+                    f"Bonjour {item.full_name},\n\n"
+                    f"Votre demande pour {item.get_training_display()} n'a pas été retenue. "
+                    "Vous pouvez contacter l'équipe ProjectAcademy pour toute question.\n\n"
+                    "L'équipe ProjectAcademy"
+                )
+            else:
+                subject = "Mise à jour de votre demande ProjectAcademy"
+                message = (
+                    f"Bonjour {item.full_name},\n\n"
+                    "Votre demande est en cours de traitement. Nous reviendrons vers vous.\n\n"
+                    "L'équipe ProjectAcademy"
+                )
+            try:
+                notification_sent = bool(send_mail(
+                    subject, message, settings.DEFAULT_FROM_EMAIL, [item.email], fail_silently=False
+                ))
+            except Exception:
+                logger.exception("Unable to send registration update email for registration %s", item.id)
+
+        return Response({**registration_payload(item), "notification_sent": notification_sent})
 
 
 class AdminUserUpdateView(APIView):
