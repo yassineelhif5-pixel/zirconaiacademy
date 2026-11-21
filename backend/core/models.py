@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -15,9 +16,10 @@ class TrainingRegistration(models.Model):
         ("received", "Demande reçue"),
         ("reviewing", "À traiter"),
         ("confirmed", "Confirmée"),
-        ("cancelled", "Annulée"),
+        ("cancelled", "Refusée / annulée"),
     ]
 
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="training_registrations")
     training = models.CharField(max_length=40, choices=TRAINING_CHOICES)
     full_name = models.CharField(max_length=150)
     email = models.EmailField(max_length=254)
@@ -26,11 +28,15 @@ class TrainingRegistration(models.Model):
     question = models.TextField(blank=True, max_length=1000)
     consent = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="received")
+    confirmed_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["training", "created_at"], name="core_train_training_1a1f_idx"), models.Index(fields=["email"], name="core_train_email_7c2d_idx")]
+        indexes = [
+            models.Index(fields=["training", "created_at"], name="core_train_training_1a1f_idx"),
+            models.Index(fields=["email"], name="core_train_email_7c2d_idx"),
+        ]
 
     def __str__(self):
         return f"{self.full_name} — {self.get_training_display()}"
@@ -44,6 +50,7 @@ class ProductInterest(models.Model):
         ("ZirconAcademy AI", "ZirconAcademy AI"),
     ]
 
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="product_interests")
     product = models.CharField(max_length=60, choices=PRODUCT_CHOICES)
     full_name = models.CharField(max_length=150)
     email = models.EmailField(max_length=254)
