@@ -119,3 +119,6 @@ Après mise à jour du code, exécuter :
 python manage.py migrate
 ```
 La migration `0002_registration_ownership_and_date` ajoute l'association facultative aux comptes et la date confirmée.
+
+### Notifications email
+Configurer les paramètres SMTP dans les variables d'environnement du backend (`EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL`). Les notifications de décision sont envoyées uniquement si le serveur SMTP est configuré. Vérifier les paramètres avec le fournisseur email avant production.
