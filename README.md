@@ -91,3 +91,31 @@ Variables serveur facultatives pour activer l'IA :
 Ne jamais placer la clé dans une variable `NEXT_PUBLIC_*` ni dans le frontend. Sans clé, l'API renvoie explicitement un statut 503 et un message de configuration.
 
 Les jetons d'accès sont gardés en sessionStorage dans ce premier incrément. Pour une mise en production, privilégier des cookies HttpOnly Secure SameSite, une procédure de réinitialisation de mot de passe, vérification email, règles de rétention, CAPTCHA, tests de sécurité et revue RGPD.
+
+
+## Authentification Google, espace apprenant et administration
+
+### Connexion Google
+1. Créer un client OAuth 2.0 de type application Web dans Google Cloud Console.
+2. Ajouter les origines JavaScript autorisées du site et de localhost.
+3. Définir le même identifiant client dans `GOOGLE_CLIENT_ID` (backend) et `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (frontend).
+4. L'API vérifie côté serveur la signature, l'audience et le claim `email_verified` du jeton Google. Ne jamais faire confiance à une adresse email simplement envoyée par le navigateur.
+
+### Espace apprenant
+- `/espace-apprenant` affiche uniquement les demandes liées à l'identifiant du compte connecté.
+- Les nouvelles demandes envoyées depuis une session authentifiée sont associées à ce compte.
+- Une date de session confirmée est affichée dans l'historique.
+
+### Console d'administration
+- `/admin` est une interface réservée aux utilisateurs Django ayant `is_staff=True`.
+- L'API applique `IsAdminUser` à toutes les routes de gestion : un masquage de bouton côté frontend ne constitue jamais une protection.
+- L'administrateur peut consulter les demandes, accepter/refuser, choisir une date et activer/désactiver les comptes apprenants.
+- Créer le premier administrateur sur le serveur avec `python manage.py createsuperuser`. Le mot de passe est saisi de façon interactive et haché par Django.
+- Ne pas mettre de mot de passe admin dans le dépôt, dans le frontend, dans un fichier commité ou dans une variable `NEXT_PUBLIC_*`.
+
+### Migration de base de données
+Après mise à jour du code, exécuter :
+```bash
+python manage.py migrate
+```
+La migration `0002_registration_ownership_and_date` ajoute l'association facultative aux comptes et la date confirmée.
