@@ -26,12 +26,12 @@ Les produits « Disponible prochainement » proposent uniquement une demande d'i
 ### API Django
 
 ```bash
+Copy-Item .env.example .env  # PowerShell, depuis la racine du projet
 cd backend
 python -m venv .venv
 # Windows : .venv\Scripts\activate
 # Linux/macOS : source .venv/bin/activate
 pip install -r requirements.txt
-copy .env.example .env  # Windows ; sous Linux : cp .env.example .env
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
