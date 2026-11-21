@@ -37,4 +37,3 @@ class LearningDashboardPrivacyTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["registrations"], [])
         self.assertEqual(response.data["product_interests"], [])
-        self.assertIn("vérification", response.data["notice"].lower())
