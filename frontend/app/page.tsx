@@ -120,7 +120,7 @@ export default function Home() {
     event.preventDefault();
     setFormState("sending");
     setFormMessage("");
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;\n    const form = new FormData(formElement);
     const payload = {
       training: activeTraining?.id,
       full_name: String(form.get("full_name") ?? "").trim(),
@@ -142,7 +142,7 @@ export default function Home() {
       if (!response.ok) throw new Error(data.detail || "Votre demande n'a pas pu être enregistrée.");
       setFormState("success");
       setFormMessage("Votre demande a bien été enregistrée. L'équipe ZirconAI vous contactera par email pour confirmer la date de votre session.");
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error) {
       setFormState("error");
       setFormMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
