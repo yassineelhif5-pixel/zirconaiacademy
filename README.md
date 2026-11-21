@@ -77,3 +77,17 @@ Depuis la racine : `docker compose up -d db`. Sans Docker, le backend utilise SQ
 ## Déploiement
 
 Consulter [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Ce dépôt ne déploie pas automatiquement le domaine et ne configure pas le DNS.
+
+
+## Espace membre et assistant IA
+
+- `/connexion` : création de compte et connexion par JWT.
+- `/assistant` : assistant conversationnel réservé aux utilisateurs authentifiés.
+- API : `/api/auth/register/`, `/api/auth/token/`, `/api/auth/me/`, `/api/auth/logout/`, `/api/assistant/chat/`.
+- L'assistant utilise l'API Chat Completions compatible OpenAI. Il s'appuie sur une base de connaissances fixe et ne doit pas inventer de faits produits ou de dates.
+
+Variables serveur facultatives pour activer l'IA :
+`AI_API_KEY`, `AI_BASE_URL` (par défaut `https://api.openai.com/v1`), `AI_MODEL` (par défaut `gpt-4.1-mini`).
+Ne jamais placer la clé dans une variable `NEXT_PUBLIC_*` ni dans le frontend. Sans clé, l'API renvoie explicitement un statut 503 et un message de configuration.
+
+Les jetons d'accès sont gardés en sessionStorage dans ce premier incrément. Pour une mise en production, privilégier des cookies HttpOnly Secure SameSite, une procédure de réinitialisation de mot de passe, vérification email, règles de rétention, CAPTCHA, tests de sécurité et revue RGPD.
