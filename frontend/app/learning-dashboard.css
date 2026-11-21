@@ -1,0 +1,5 @@
+
+.dashboard-section{margin:34px 0;padding:24px;border:1px solid #36575a;background:#0e252e}.dashboard-section h2{font:600 25px var(--serif);margin:8px 0 20px;color:var(--text)}.dashboard-item{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-top:1px solid var(--line)}.dashboard-item strong,.dashboard-item small{display:block}.dashboard-item strong{font-size:13px;color:#e5e4d9}.dashboard-item small{font-size:10px;color:#8fa39a;margin-top:6px}.dashboard-status{font-size:10px;color:var(--gold2);border:1px solid #8c743e;border-radius:20px;padding:7px 10px;white-space:nowrap}.dashboard-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+@media(max-width:600px){.dashboard-section{padding:18px}.dashboard-item{align-items:flex-start;flex-direction:column}.dashboard-actions{flex-direction:column}.dashboard-actions .button{width:100%}}
+
+.learner-session-date{display:block;color:#72d4ad;font-size:11px;margin-top:8px}
