@@ -71,3 +71,15 @@ class AdminConsoleApiTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["registrations"]), 1)
         self.assertEqual(response.data["registrations"][0]["id"], self.registration.id)
+
+    def test_staff_cannot_clear_date_of_confirmed_registration(self):
+        self.registration.status = "confirmed"
+        self.registration.confirmed_date = date.today() + timedelta(days=10)
+        self.registration.save(update_fields=["status", "confirmed_date"])
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.patch(
+            f"/api/admin/registrations/{self.registration.id}/",
+            {"confirmed_date": None},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
