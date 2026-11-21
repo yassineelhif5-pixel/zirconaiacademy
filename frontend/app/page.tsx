@@ -167,7 +167,7 @@ export default function Home() {
       if (!base) throw new Error("Le service de contact n'est pas encore configuré.");
       const response = await fetch(`${base}/api/product-interests/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(sessionStorage.getItem("projectacademy_access") ? { Authorization: "Bearer " + sessionStorage.getItem("projectacademy_access") } : {}) },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
