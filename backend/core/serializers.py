@@ -5,8 +5,8 @@ from .models import ProductInterest, TrainingRegistration
 class TrainingRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingRegistration
-        fields = ["id", "training", "full_name", "email", "company", "experience", "question", "consent", "status", "created_at"]
-        read_only_fields = ["id", "status", "created_at"]
+        fields = ["id", "training", "full_name", "email", "company", "experience", "question", "consent", "status", "confirmed_date", "created_at"]
+        read_only_fields = ["id", "status", "confirmed_date", "created_at"]
 
     def validate_consent(self, value):
         if value is not True:
