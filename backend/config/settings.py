@@ -14,10 +14,16 @@ if not SECRET_KEY:
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
 
 INSTALLED_APPS = [
-    "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
-    "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "corsheaders",
+    "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
-    "corsheaders", "rest_framework", "rest_framework_simplejwt.token_blacklist", "core",
+    "core",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
