@@ -1,4 +1,4 @@
-import "./learning-dashboard.css";
+import "../learning-dashboard.css";
 
 "use client";
 
