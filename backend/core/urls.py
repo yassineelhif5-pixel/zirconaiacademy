@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .auth_views import MeView, RegisterView, LogoutView
 from .chat_views import ChatView
+from .learning_views import LearningDashboardView
 from .views import ProductInterestCreateView, TrainingRegistrationCreateView, health
 
 urlpatterns = [
@@ -12,6 +13,7 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("assistant/chat/", ChatView.as_view(), name="assistant-chat"),
+    path("learning/dashboard/", LearningDashboardView.as_view(), name="learning-dashboard"),
     path("registrations/", TrainingRegistrationCreateView.as_view(), name="training-registration"),
     path("product-interests/", ProductInterestCreateView.as_view(), name="product-interest"),
 ]
