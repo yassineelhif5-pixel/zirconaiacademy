@@ -203,7 +203,8 @@ export default function Home() {
           <a href="#solutions" onClick={() => setMobileMenu(false)}>Solutions SaaS</a>
           <a href="#formations" onClick={() => setMobileMenu(false)}>Formations</a>
           <a href="#method" onClick={() => setMobileMenu(false)}>Notre méthode</a>
-          <a href="/connexion" className="nav-cta" onClick={() => setMobileMenu(false)}>Espace membre ↗</a>\n          <a href="#contact" onClick={() => setMobileMenu(false)}>Contact</a>
+          <a href="/connexion" className="nav-cta" onClick={() => setMobileMenu(false)}>Espace membre ↗</a>
+          <a href="#contact" onClick={() => setMobileMenu(false)}>Contact</a>
         </nav>
       </header>
 
