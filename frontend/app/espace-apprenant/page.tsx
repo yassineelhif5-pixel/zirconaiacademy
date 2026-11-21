@@ -10,7 +10,7 @@ const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
 
 type Registration = {
   id: number; training: string; training_label: string;
-  status: string; status_label: string; created_at: string;
+  status: string; status_label: string; confirmed_date: string | null; created_at: string;
 };
 type Interest = { id: number; product: string; created_at: string };
 type Dashboard = {
@@ -70,7 +70,7 @@ export default function EspaceApprenant() {
               ? <p className="auth-intro">Aucune inscription retrouvée pour {data.profile.email || "votre compte"}. Les demandes sont rapprochées à partir de l'adresse email de votre compte.</p>
               : data.registrations.map((item) => <article className="dashboard-item" key={item.id}>
                   <div><strong>{item.training_label}</strong><small>Demande du {formatDate(item.created_at)}</small></div>
-                  <span className="dashboard-status">{item.status_label}</span>
+                  <span className="dashboard-status">{item.status === "confirmed" ? "Formation confirmée" : item.status_label}</span>{item.confirmed_date && <small className="learner-session-date">Session prévue le {new Intl.DateTimeFormat("fr-FR",{dateStyle:"long"}).format(new Date(item.confirmed_date+"T12:00:00"))}</small>}
                 </article>)}
           </div>
           <div className="dashboard-section">
