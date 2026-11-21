@@ -13,7 +13,7 @@ User = get_user_model()
 
 class GoogleLoginView(APIView):
     permission_classes = [permissions.AllowAny]
-    throttle_scope = "registration"
+    throttle_scope = "google_login"
 
     def post(self, request):
         credential = request.data.get("credential")
