@@ -30,7 +30,7 @@ class TrainingRegistration(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["training", "created_at"]), models.Index(fields=["email"])]
+        indexes = [models.Index(fields=["training", "created_at"], name="core_train_training_1a1f_idx"), models.Index(fields=["email"], name="core_train_email_7c2d_idx")]
 
     def __str__(self):
         return f"{self.full_name} — {self.get_training_display()}"
@@ -52,7 +52,7 @@ class ProductInterest(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["product", "created_at"])]
+        indexes = [models.Index(fields=["product", "created_at"], name="core_prod_product_5e3a_idx")]
 
     def __str__(self):
         return f"{self.full_name} — {self.product}"
