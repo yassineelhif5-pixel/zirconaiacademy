@@ -40,3 +40,31 @@ class RegistrationApiTests(TestCase):
         }, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(ProductInterest.objects.count(), 0)
+
+
+class AuthenticationAndAssistantTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_register_and_obtain_jwt(self):
+        response = self.client.post("/api/auth/register/", {
+            "username": "learner01",
+            "email": "learner@example.com",
+            "first_name": "Alex",
+            "last_name": "Learner",
+            "password": "a-very-strong-password-2026",
+        }, format="json")
+        self.assertEqual(response.status_code, 201)
+        token = self.client.post("/api/auth/token/", {
+            "username": "learner01",
+            "password": "a-very-strong-password-2026",
+        }, format="json")
+        self.assertEqual(token.status_code, 200)
+        self.assertIn("access", token.data)
+        self.assertIn("refresh", token.data)
+
+    def test_assistant_requires_authentication(self):
+        response = self.client.post("/api/assistant/chat/", {
+            "message": "Quelles sont les formations ?",
+        }, format="json")
+        self.assertEqual(response.status_code, 401)
