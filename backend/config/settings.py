@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR.parent / ".env")
@@ -48,13 +49,27 @@ TEMPLATES = [{
 }]
 WSGI_APPLICATION = "config.wsgi.application"
 
-DB_NAME = os.getenv("DB_NAME")
-if DB_NAME:
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DB_POOLER_MODE = os.getenv("DB_POOLER_MODE", "session").strip().lower()
+if DATABASE_URL:
+    # Supabase PostgreSQL: require TLS. For Supavisor transaction pooling,
+    # disable persistent connections and server-side cursors.
+    DATABASES = {"default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=0 if DB_POOLER_MODE == "transaction" else 60,
+        ssl_require=True,
+    )}
+    if DB_POOLER_MODE == "transaction":
+        DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
+elif os.getenv("DB_NAME"):
     DATABASES = {"default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": DB_NAME, "USER": os.getenv("DB_USER", ""),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""), "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"), "CONN_MAX_AGE": 60,
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER", ""),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+        "CONN_MAX_AGE": 60,
     }}
 else:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
@@ -66,7 +81,6 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework_simplejwt.authentication.JWTAuthentication"],
     "DEFAULT_THROTTLE_RATES": {"anon": "30/hour", "registration": "5/hour", "chat": "20/hour", "google_login": "10/minute"},
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle", "rest_framework.throttling.ScopedRateThrottle"],
-    
 }
 LANGUAGE_CODE = "fr-fr"
 TIME_ZONE = "Europe/Paris"
