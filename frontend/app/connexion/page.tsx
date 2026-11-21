@@ -4,6 +4,7 @@ import Script from "next/script";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { safeNext } from "../lib/auth";
 
 declare global {
   interface Window {
@@ -16,7 +17,7 @@ declare global {
   }
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "").replace(/\/api$/, "");
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function Connexion() {
@@ -30,6 +31,8 @@ export default function Connexion() {
     sessionStorage.setItem("projectacademy_refresh", refresh);
     const response = await fetch(API + "/api/auth/me/", { headers: { Authorization: "Bearer " + access } });
     const user = await response.json();
+    const next = safeNext(new URLSearchParams(window.location.search).get("next"));
+    if (next) { window.location.href = next; return; }
     router.push(user.is_staff ? "/admin" : "/espace-apprenant");
   }
 
@@ -103,7 +106,7 @@ export default function Connexion() {
       <Link href="/" className="auth-brand">ZIRCON<span>AI</span><small>PROJECT ACADEMY</small></Link>
       <div className="section-kicker">ESPACE MEMBRE / ACCÈS SÉCURISÉ</div>
       <h1>{mode === "login" ? "Heureux de vous revoir." : "Rejoignez ProjectAcademy."}</h1>
-      <p className="auth-intro">Accédez à votre espace personnel et suivez vos formations.</p>
+      <p className="auth-intro">Accédez à votre espace personnel : formations, propositions de projet et réponses de l&apos;équipe ZirconAI.</p>
       <div className="auth-tabs">
         <button className={mode === "login" ? "active" : ""} onClick={() => { setMode("login"); setError(""); }}>Connexion</button>
         <button className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setError(""); }}>Créer un compte</button>

@@ -3,7 +3,7 @@ import {FormEvent,useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import Link from "next/link";
 type Message={role:"user"|"assistant";content:string};
-const API=process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/,"");
+const API=process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "").replace(/\/api$/, "");
 export default function Assistant(){
  const router=useRouter();const [ready,setReady]=useState(false);const [busy,setBusy]=useState(false);const [input,setInput]=useState("");const [error,setError]=useState("");
  const [messages,setMessages]=useState<Message[]>([{role:"assistant",content:"Bonjour ! Je suis l'assistant ProjectAcademy. Je peux vous renseigner sur les formations et les solutions ZirconAI."}]);
