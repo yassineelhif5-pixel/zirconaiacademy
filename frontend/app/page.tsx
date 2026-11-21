@@ -120,7 +120,8 @@ export default function Home() {
     event.preventDefault();
     setFormState("sending");
     setFormMessage("");
-    const formElement = event.currentTarget;\n    const form = new FormData(formElement);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const payload = {
       training: activeTraining?.id,
       full_name: String(form.get("full_name") ?? "").trim(),
