@@ -66,11 +66,11 @@ class AdminRegistrationUpdateSerializer(serializers.Serializer):
     confirmed_date = serializers.DateField(required=False, allow_null=True)
 
     def validate(self, attrs):
-        new_status = attrs.get("status")
-        confirmed_date = attrs.get("confirmed_date")
-        if new_status == "confirmed" and not confirmed_date and not self.instance.confirmed_date:
-            raise serializers.ValidationError({"confirmed_date": "Choisissez une date avant de confirmer."})
-        if confirmed_date and confirmed_date < date.today():
+        effective_status = attrs.get("status", self.instance.status)
+        effective_date = attrs.get("confirmed_date", self.instance.confirmed_date)
+        if effective_status == "confirmed" and not effective_date:
+            raise serializers.ValidationError({"confirmed_date": "Une date est obligatoire pour une demande confirmée."})
+        if effective_date and effective_date < date.today():
             raise serializers.ValidationError({"confirmed_date": "La date doit être aujourd'hui ou ultérieure."})
         return attrs
 
