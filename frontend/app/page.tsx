@@ -153,7 +153,8 @@ export default function Home() {
     event.preventDefault();
     setFormState("sending");
     setFormMessage("");
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const payload = {
       product: interestProduct?.name,
       full_name: String(form.get("full_name") ?? "").trim(),
@@ -172,7 +173,7 @@ export default function Home() {
       if (!response.ok) throw new Error(data.detail || "Votre demande n'a pas pu être enregistrée.");
       setFormState("success");
       setFormMessage("Merci ! Votre intérêt est enregistré. Nous vous informerons lorsque cette solution approchera de son lancement.");
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error) {
       setFormState("error");
       setFormMessage(error instanceof Error ? error.message : "Une erreur est survenue.");
