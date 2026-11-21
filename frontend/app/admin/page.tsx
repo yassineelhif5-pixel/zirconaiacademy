@@ -1,3 +1,4 @@
+import "./admin.css";
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
