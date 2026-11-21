@@ -136,7 +136,7 @@ export default function Home() {
       if (!base) throw new Error("Le service d'inscription n'est pas encore configuré. Merci de réessayer ultérieurement.");
       const response = await fetch(`${base}/api/registrations/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(typeof window !== "undefined" && sessionStorage.getItem("projectacademy_access") ? { Authorization: "Bearer " + sessionStorage.getItem("projectacademy_access") } : {}) },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
