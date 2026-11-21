@@ -63,3 +63,34 @@ class ProductInterest(models.Model):
 
     def __str__(self):
         return f"{self.full_name} — {self.product}"
+
+
+class ProjectProposal(models.Model):
+    """Besoin projet soumis par un membre après échange avec le conseiller IA."""
+
+    STATUS_CHOICES = [
+        ("submitted", "Proposition envoyée"),
+        ("reviewing", "En cours d'étude"),
+        ("accepted", "Acceptée — un expert vous contacte"),
+        ("declined", "Non retenue"),
+    ]
+    SOURCE_CHOICES = [("ai", "IA"), ("guided", "Analyse guidée")]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="project_proposals")
+    title = models.CharField(max_length=150)
+    need = models.TextField(max_length=3000)
+    analysis = models.TextField(max_length=8000, blank=True)
+    analysis_source = models.CharField(max_length=10, choices=SOURCE_CHOICES, default="guided")
+    conversation = models.JSONField(default=list, blank=True)
+    company = models.CharField(max_length=150, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="submitted")
+    admin_note = models.TextField(max_length=2000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["status", "created_at"], name="core_proposal_status_idx")]
+
+    def __str__(self):
+        return f"{self.title} — {self.user}"

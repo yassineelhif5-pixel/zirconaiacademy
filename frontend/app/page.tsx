@@ -1,6 +1,8 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import ProjectAdvisor from "./ProjectAdvisor";
+import ShieldStamp from "./ShieldStamp";
 
 type Product = {
   name: string;
@@ -113,6 +115,35 @@ export default function Home() {
   const [formState, setFormState] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [formMessage, setFormMessage] = useState("");
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [advisorOpen, setAdvisorOpen] = useState(false);
+  const closeAdvisor = useCallback(() => {
+    setAdvisorOpen(false);
+    if (window.location.hash === "#projet") history.replaceState(null, "", window.location.pathname);
+  }, []);
+
+  useEffect(() => {
+    const openFromHash = () => { if (window.location.hash === "#projet") setAdvisorOpen(true); };
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const items = document.querySelectorAll<HTMLElement>(".reveal");
+    const observer = "IntersectionObserver" in window
+      ? new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); observer?.unobserve(e.target); } }), { threshold: 0.12 })
+      : null;
+    items.forEach((el) => (observer ? observer.observe(el) : el.classList.add("in")));
+    const onMove = (event: PointerEvent) => {
+      const card = (event.target as HTMLElement | null)?.closest<HTMLElement>(".zx-spot");
+      if (!card) return;
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${event.clientX - rect.left}px`);
+      card.style.setProperty("--my", `${event.clientY - rect.top}px`);
+    };
+    document.addEventListener("pointermove", onMove, { passive: true });
+    return () => { window.removeEventListener("hashchange", openFromHash); window.removeEventListener("scroll", onScroll); document.removeEventListener("pointermove", onMove); observer?.disconnect(); };
+  }, []);
 
   const availableProducts = useMemo(() => products.filter((p) => p.status === "available"), []);
 
@@ -132,7 +163,7 @@ export default function Home() {
       consent: form.get("consent") === "on",
     };
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+      const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "").replace(/\/api$/, "");
       if (!base) throw new Error("Le service d'inscription n'est pas encore configuré. Merci de réessayer ultérieurement.");
       const response = await fetch(`${base}/api/registrations/`, {
         method: "POST",
@@ -163,7 +194,7 @@ export default function Home() {
       consent: form.get("consent") === "on",
     };
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+      const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "").replace(/\/api$/, "");
       if (!base) throw new Error("Le service de contact n'est pas encore configuré.");
       const response = await fetch(`${base}/api/product-interests/`, {
         method: "POST",
@@ -190,136 +221,182 @@ export default function Home() {
   }
 
   return (
-    <main>
-      <div className="top-line" />
-      <header className="site-header">
-        <a href="#home" className="brand" aria-label="ProjectAcademy, accueil">
-          <span className="brand-mark">Z<span>◇</span></span>
-          <span className="brand-name">ZIRCON<span>AI</span><small>PROJECT ACADEMY</small></span>
+    <main className="zx">
+      <div className="zx-aurora" aria-hidden="true"><span /><span /><span /></div>
+      <div className="zx-noise" aria-hidden="true" />
+
+      <header className={scrolled ? "zx-header is-scrolled" : "zx-header"}>
+        <a href="#home" className="zx-brand" aria-label="ProjectAcademy, accueil">
+          <span className="zx-logo"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 29 9.5v13L16 30 3 22.5v-13Z" /><path d="M10 11h12l-12 10h12" /></svg></span>
+          <span className="zx-brand-text">Zircon<b>AI</b><small>Project Academy</small></span>
         </a>
-        <button className="menu-toggle" aria-label="Ouvrir le menu" onClick={() => setMobileMenu(!mobileMenu)}>☰</button>
-        <nav className={mobileMenu ? "navigation open" : "navigation"}>
-          <a href="#expertise" onClick={() => setMobileMenu(false)}>Expertises</a>
-          <a href="#solutions" onClick={() => setMobileMenu(false)}>Solutions SaaS</a>
-          <a href="#formations" onClick={() => setMobileMenu(false)}>Formations</a>
-          <a href="#method" onClick={() => setMobileMenu(false)}>Notre méthode</a>
-          <a href="/connexion" className="nav-cta" onClick={() => setMobileMenu(false)}>Espace membre ↗</a>
-          <a href="#contact" onClick={() => setMobileMenu(false)}>Contact</a>
+        <nav className={mobileMenu ? "zx-nav open" : "zx-nav"}>
+          {[["#expertise", "Expertises"], ["#solutions", "Solutions"], ["#formations", "Formations"], ["#method", "Méthode"], ["#contact", "Contact"]].map(([href, label]) => (
+            <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label}</a>
+          ))}
+          <a href="/connexion" className="zx-nav-cta" onClick={() => setMobileMenu(false)}><span className="zx-dot" /> Espace membre</a>
         </nav>
+        <button className="zx-burger" aria-label="Ouvrir le menu" aria-expanded={mobileMenu} onClick={() => setMobileMenu(!mobileMenu)}><span /><span /></button>
       </header>
 
-      <section className="hero" id="home">
-        <div className="hero-grid" />
-        <div className="hero-copy">
-          <div className="eyebrow"><span className="pulse-dot" /> ZIRCONAI · INTELLIGENCE EN ACTION</div>
-          <h1>Donner à l&apos;innovation<br /><em>une longueur d&apos;avance.</em></h1>
-          <p className="hero-lead">Nous concevons des architectures intelligentes, sécurisons les usages de l&apos;IA et créons des SaaS qui transforment les idées en solutions concrètes.</p>
-          <div className="hero-actions">
-            <a href="#formations" className="button button-gold">Découvrir les formations <span>↗</span></a>
-            <a href="#solutions" className="button button-ghost">Explorer nos solutions</a>
+      <section className="zx-hero" id="home">
+        <div className="zx-grid-floor" aria-hidden="true" />
+        <ShieldStamp />
+        <div className="zx-hero-copy reveal">
+          <div className="zx-chip"><span className="zx-dot" /> Inscriptions ouvertes<span className="zx-chip-more"> · Février 2027</span></div>
+          <h1>L&apos;intelligence<br /><span className="zx-gradient-text">qui prend de l&apos;avance.</span></h1>
+          <p className="zx-lead">Architectures IA, cybersécurité et SaaS intelligents. ZirconAI transforme les idées en systèmes concrets, et ProjectAcademy vous forme gratuitement pour les maîtriser.</p>
+          <div className="zx-actions">
+            <a href="#formations" className="zx-btn zx-btn-primary">Réserver ma formation gratuite <span aria-hidden="true">→</span></a>
+            <a href="#solutions" className="zx-btn zx-btn-ghost">Explorer l&apos;écosystème</a>
+            <button type="button" className="zx-btn zx-btn-ai" onClick={() => setAdvisorOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2" /><circle cx="12" cy="12" r="3" /></svg> Démarrer un nouveau projet</button>
           </div>
-          <div className="hero-meta"><span>01 — AI & ARCHITECTURE</span><span>02 — CYBERSECURITY</span><span>03 — INTELLIGENT SAAS</span></div>
+          <dl className="zx-stats">
+            <div><dt>6</dt><dd>solutions SaaS</dd></div>
+            <div><dt>2</dt><dd>formations gratuites</dd></div>
+            <div><dt>4h</dt><dd>par session</dd></div>
+          </dl>
         </div>
-        <div className="hero-visual" aria-hidden="true">
-          <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" />
-          <div className="crystal"><div className="crystal-core">Z</div></div>
-          <div className="visual-label label-top">AI / SYSTEMS <b>● ONLINE</b></div>
-          <div className="visual-label label-bottom">INTELLIGENCE<br /><strong>WITHOUT LIMITS</strong></div>
-          <span className="float-node node-a" /><span className="float-node node-b" /><span className="float-node node-c" />
-        </div>
-        <div className="hero-bottom"><span>SCROLL TO EXPLORE ↓</span><span>PARIS · FRANCE</span></div>
-      </section>
 
-      <section className="intro section-wrap" id="expertise">
-        <div className="section-kicker">01 / QUI SOMMES-NOUS</div>
-        <div className="intro-layout">
-          <h2>La technologie doit<br />servir <em>l&apos;ambition.</em></h2>
-          <div className="intro-copy">
-            <p>ZirconAI accompagne les entreprises dans la conception de solutions numériques de nouvelle génération. Notre approche réunit architecture logicielle, intelligence artificielle, cybersécurité et développement de plateformes SaaS.</p>
-            <div className="expertise-list">
-              <div><span>01</span><b>AI & Architecture</b><small>LLM, RAG, agents et intégration applicative</small></div>
-              <div><span>02</span><b>Cybersecurity</b><small>Protection des données et maîtrise des risques</small></div>
-              <div><span>03</span><b>Intelligent SaaS</b><small>Produits métier, automatisation et expérience utilisateur</small></div>
-            </div>
+        <div className="zx-hero-visual reveal" aria-hidden="true">
+          <div className="zx-core">
+            <div className="zx-ring r1" /><div className="zx-ring r2" /><div className="zx-ring r3" />
+            <div className="zx-crystal"><svg viewBox="0 0 100 100"><defs><linearGradient id="zg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#67e8f9" /><stop offset=".5" stopColor="#818cf8" /><stop offset="1" stopColor="#c084fc" /></linearGradient></defs><path d="M50 4 92 28v44L50 96 8 72V28Z" fill="none" stroke="url(#zg)" strokeWidth="2" /><path d="M50 4v92M8 28l84 44M92 28 8 72" stroke="url(#zg)" strokeWidth=".6" opacity=".5" /><path d="M34 38h32L34 62h32" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" /></svg></div>
+            <i className="zx-node n1" /><i className="zx-node n2" /><i className="zx-node n3" /><i className="zx-node n4" />
           </div>
+          <div className="zx-term">
+            <div className="zx-term-bar"><i /><i /><i /><span>zircon://core</span></div>
+            <pre><span className="c">$</span> zircon init --academy{"\n"}<span className="ok">✓</span> modèles LLM chargés{"\n"}<span className="ok">✓</span> garde-fous sécurité actifs{"\n"}<span className="ok">✓</span> 2 parcours prêts<span className="zx-caret" /></pre>
+          </div>
+          <div className="zx-float-card fc1"><span className="zx-dot" /> AI SYSTEMS · ONLINE</div>
+          <div className="zx-float-card fc2"><b>0 €</b><small>formations gratuites</small></div>
         </div>
       </section>
 
-      <section className="solutions-section section-wrap" id="solutions">
-        <div className="section-heading">
-          <div><div className="section-kicker">02 / NOTRE ÉCOSYSTÈME</div><h2>Des solutions pensées<br /><em>pour aller plus loin.</em></h2></div>
-          <p>Des produits disponibles aujourd&apos;hui et de nouvelles plateformes en préparation.</p>
+      <div className="zx-marquee" aria-hidden="true">
+        <div>{[...Array(2)].map((_, k) => <span key={k}>LLM ◆ RAG ◆ AGENTS IA ◆ CYBERSÉCURITÉ ◆ ZERO TRUST ◆ ARCHITECTURE CLOUD ◆ SAAS ◆ DATA ◆ GOUVERNANCE IA ◆ </span>)}</div>
+      </div>
+
+      <section className="zx-section" id="expertise">
+        <div className="zx-split">
+          <div className="reveal">
+            <div className="zx-kicker"><span>01</span> Qui sommes-nous</div>
+            <h2>La technologie doit servir <span className="zx-gradient-text">l&apos;ambition.</span></h2>
+            <p className="zx-muted">ZirconAI accompagne les entreprises dans la conception de solutions numériques de nouvelle génération : architecture logicielle, intelligence artificielle, cybersécurité et plateformes SaaS.</p>
+          </div>
+          <div className="zx-expertise">
+            {[
+              ["AI & Architecture", "LLM, RAG, agents et intégration applicative", "M12 2a4 4 0 0 1 4 4v1a3 3 0 0 1 3 3v1a3 3 0 0 1-1 2.2V15a3 3 0 0 1-3 3h-1v4h-4v-4H9a3 3 0 0 1-3-3v-1.8A3 3 0 0 1 5 11v-1a3 3 0 0 1 3-3V6a4 4 0 0 1 4-4Z"],
+              ["Cybersecurity", "Protection des données et maîtrise des risques", "M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5Z"],
+              ["Intelligent SaaS", "Produits métier, automatisation et expérience utilisateur", "M3 4h18v12H3zM8 20h8M12 16v4"],
+            ].map(([title, text, d], i) => (
+              <article key={title} className="zx-glass zx-spot reveal" style={{ transitionDelay: `${i * 90}ms` }}>
+                <span className="zx-icon"><svg viewBox="0 0 24 24"><path d={d} /></svg></span>
+                <div><b>{title}</b><small>{text}</small></div>
+                <span className="zx-idx">0{i + 1}</span>
+              </article>
+            ))}
+          </div>
         </div>
-        <div className="product-grid">
+      </section>
+
+      <section className="zx-section" id="solutions">
+        <div className="zx-heading reveal">
+          <div><div className="zx-kicker"><span>02</span> Notre écosystème</div><h2>Des solutions pensées <span className="zx-gradient-text">pour aller plus loin.</span></h2></div>
+          <p className="zx-muted">Deux plateformes disponibles dès aujourd&apos;hui, quatre autres en préparation dans nos labs.</p>
+        </div>
+        <div className="zx-bento">
           {products.map((product, index) => (
-            <article className={`product-card ${product.status === "coming" ? "product-coming" : ""}`} key={product.name}>
-              <div className="product-topline"><span>0{index + 1} / ZIRCONAI LABS</span><span className={product.status === "available" ? "status status-live" : "status"}>{product.status === "available" ? "DISPONIBLE" : "PROCHAINEMENT"}</span></div>
-              <div className="product-emblem"><div className="emblem-ring" /><span>{product.symbol}</span><i /></div>
-              <div className="product-category">{product.category}</div>
+            <article className={`zx-product zx-glass zx-spot reveal ${product.status === "available" ? "is-live" : "is-coming"}`} key={product.name} style={{ transitionDelay: `${(index % 3) * 80}ms` }}>
+              <div className="zx-product-top">
+                <span className="zx-emblem">{product.symbol}</span>
+                <span className={product.status === "available" ? "zx-badge live" : "zx-badge"}>{product.status === "available" ? <><span className="zx-dot" /> Disponible</> : "Bientôt"}</span>
+              </div>
+              <div className="zx-cat">{product.category}</div>
               <h3>{product.name}</h3>
               <p>{product.description}</p>
-              <button className="text-link" onClick={() => setActiveProduct(product)}>{product.status === "available" ? "Découvrir la solution" : "Découvrir le projet"} <span>↗</span></button>
+              <ul className="zx-mini-tags">{product.modules.slice(0, 3).map((m) => <li key={m}>{m}</li>)}</ul>
+              <button className="zx-link" onClick={() => setActiveProduct(product)}>{product.status === "available" ? "Découvrir la solution" : "Découvrir le projet"} <span aria-hidden="true">→</span></button>
             </article>
           ))}
         </div>
-        <div className="available-links">
-          <span>ACCÈS DIRECT AUX PLATEFORMES</span>
+        <div className="zx-direct reveal">
+          <span>Accès direct</span>
           {availableProducts.map((product) => <a href={product.url} target="_blank" rel="noreferrer" key={product.name}>{product.name} ↗</a>)}
         </div>
       </section>
 
-      <section className="training-section section-wrap" id="formations">
-        <div className="section-heading training-heading">
-          <div><div className="section-kicker">03 / PROJECTACADEMY</div><h2>Le futur se construit<br /><em>en apprenant.</em></h2></div>
-          <p>Deux formations gratuites pour découvrir les enjeux de l&apos;IA et de la cybersécurité avec une approche concrète.</p>
+      <section className="zx-section" id="formations">
+        <div className="zx-heading reveal">
+          <div><div className="zx-kicker"><span>03</span> ProjectAcademy</div><h2>Le futur se construit <span className="zx-gradient-text">en apprenant.</span></h2></div>
+          <p className="zx-muted">Deux formations gratuites de 4 heures pour comprendre l&apos;IA et la cybersécurité par la pratique.</p>
         </div>
-        <div className="training-grid">
+        <div className="zx-trainings">
           {trainings.map((training, index) => (
-            <article className={`training-card ${training.atmosphere}`} key={training.id}>
-              <div className="training-art">
-                {training.atmosphere === "cyber" ? <><div className="matrix-rain">0101 1100 0011<br />1010 0110 1001<br />0011 1010 0101<br />1100 0010 1110<br />0101 1001 0110</div><div className="cyber-shield">⬡</div><div className="art-caption">SECURITY PROTOCOL / ACTIVE</div></> : <><div className="future-sun" /><div className="future-orbit" /><div className="future-person">◉</div><div className="future-certificate">✧<small>AI SKILLS</small></div><div className="art-caption">A NEW INTELLIGENCE ERA</div></>}
-                <span className="training-number">0{index + 1}</span>
+            <article className={`zx-training zx-spot reveal ${training.atmosphere}`} key={training.id} style={{ transitionDelay: `${index * 120}ms` }}>
+              <div className="zx-training-art" aria-hidden="true">
+                {training.atmosphere === "cyber" ? (
+                  <>
+                    <div className="zx-code-rain">{Array.from({ length: 14 }, (_, i) => <span key={i} style={{ left: `${i * 7.3}%`, animationDelay: `${(i * 0.37) % 3}s` }}>{"10110 01101 11010 00111 10010 01011".slice(i % 6)}</span>)}</div>
+                    <svg className="zx-shield" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5Z" /><path d="m8.5 12 2.5 2.5 4.5-5" /></svg>
+                    <div className="zx-scan" />
+                  </>
+                ) : (
+                  <>
+                    <svg className="zx-net" viewBox="0 0 300 160">{[[40, 30], [40, 80], [40, 130], [150, 50], [150, 110], [260, 80]].map(([x, y], i, arr) => (
+                      <g key={i}>{i < 3 && [3, 4].map((j) => <line key={j} x1={x} y1={y} x2={arr[j][0]} y2={arr[j][1]} />)}{(i === 3 || i === 4) && <line x1={x} y1={y} x2={260} y2={80} />}<circle cx={x} cy={y} r={i === 5 ? 9 : 6} /></g>
+                    ))}</svg>
+                  </>
+                )}
+                <span className="zx-training-num">0{index + 1}</span>
+                <span className="zx-art-label">{training.atmosphere === "cyber" ? "SECURITY PROTOCOL · ACTIVE" : "NEURAL ARCHITECTURE · v2"}</span>
               </div>
-              <div className="training-info">
-                <div className="training-eyebrow">{training.eyebrow}</div>
+              <div className="zx-training-body">
+                <div className="zx-eyebrow">{training.eyebrow}</div>
                 <h3>{training.title}</h3>
                 <h4>{training.subtitle}</h4>
                 <p>{training.description}</p>
-                <div className="training-tags"><span>DIMANCHE</span><span>FÉVRIER 2027</span><span>EN LIGNE / MODALITÉS À CONFIRMER</span></div>
-                <button className="button button-gold" onClick={() => { setActiveTraining(training); setAssistantAnswer(faq.fallback); }}>Voir le programme & s&apos;inscrire <span>↗</span></button>
+                <ol className="zx-modules">{training.modules.map((m, i) => <li key={m}><span>{String(i + 1).padStart(2, "0")}</span>{m}</li>)}</ol>
+                <div className="zx-tags"><span>Dimanche</span><span>Février 2027</span><span>Gratuit</span><span>Modalités confirmées par email</span></div>
+                <button className="zx-btn zx-btn-primary" onClick={() => { setActiveTraining(training); setAssistantAnswer(faq.fallback); }}>Voir le programme & s&apos;inscrire <span aria-hidden="true">→</span></button>
               </div>
             </article>
           ))}
         </div>
-        <p className="date-note">Durée : 4 heures · Participation gratuite · Les sessions sont prévues les dimanches de février 2027. La date exacte et les modalités seront confirmées par email après réception de la demande.</p>
+        <p className="zx-note">Durée : 4 heures · Participation gratuite · Sessions prévues les dimanches de février 2027. La date exacte et les modalités sont confirmées par email après réception de la demande.</p>
       </section>
 
-      <section className="method-section section-wrap" id="method">
-        <div className="section-kicker">04 / NOTRE MÉTHODE</div>
-        <h2>De l&apos;idée à l&apos;impact.<br /><em>Avec méthode.</em></h2>
-        <div className="method-steps">
-          <div><span>01</span><b>Comprendre</b><p>Identifier les enjeux, les utilisateurs et les objectifs métier.</p></div>
-          <div><span>02</span><b>Concevoir</b><p>Définir une architecture robuste, sécurisée et évolutive.</p></div>
-          <div><span>03</span><b>Déployer</b><p>Construire, tester et intégrer des solutions utiles.</p></div>
-          <div><span>04</span><b>Transmettre</b><p>Former les équipes et favoriser l&apos;autonomie durable.</p></div>
+      <section className="zx-section" id="method">
+        <div className="zx-kicker reveal"><span>04</span> Notre méthode</div>
+        <h2 className="reveal">De l&apos;idée à l&apos;impact. <span className="zx-gradient-text">Avec méthode.</span></h2>
+        <div className="zx-timeline">
+          {[["Comprendre", "Identifier les enjeux, les utilisateurs et les objectifs métier."], ["Concevoir", "Définir une architecture robuste, sécurisée et évolutive."], ["Déployer", "Construire, tester et intégrer des solutions utiles."], ["Transmettre", "Former les équipes et favoriser l'autonomie durable."]].map(([t, d], i) => (
+            <div key={t} className="zx-step reveal" style={{ transitionDelay: `${i * 100}ms` }}><span className="zx-step-dot">{String(i + 1).padStart(2, "0")}</span><b>{t}</b><p>{d}</p></div>
+          ))}
         </div>
       </section>
 
-      <section className="contact-section section-wrap" id="contact">
-        <div className="contact-orb" />
-        <div className="section-kicker">05 / CONSTRUISONS ENSEMBLE</div>
-        <h2>Votre prochain projet<br /><em>commence ici.</em></h2>
-        <p>Parlons de vos enjeux en intelligence artificielle, architecture, cybersécurité ou transformation numérique.</p>
-        <a className="button button-gold" href="mailto:contact@zirconai.fr">Contacter ZirconAI <span>↗</span></a>
+      <section className="zx-section zx-cta-wrap" id="contact">
+        <div className="zx-cta reveal">
+          <div className="zx-cta-glow" aria-hidden="true" />
+          <div className="zx-kicker"><span>05</span> Construisons ensemble</div>
+          <h2>Votre prochain projet <span className="zx-gradient-text">commence ici.</span></h2>
+          <p className="zx-muted">Parlons de vos enjeux en intelligence artificielle, architecture, cybersécurité ou transformation numérique.</p>
+          <div className="zx-actions center">
+            <a className="zx-btn zx-btn-primary" href="mailto:contact@zirconai.fr">Contacter ZirconAI <span aria-hidden="true">→</span></a>
+<button type="button" className="zx-btn zx-btn-ai" onClick={() => setAdvisorOpen(true)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M6 18l2-2M16 8l2-2" /><circle cx="12" cy="12" r="3" /></svg> Démarrer un nouveau projet</button>
+            <a className="zx-btn zx-btn-ghost" href="#formations">Voir les formations</a>
+          </div>
+        </div>
       </section>
 
-      <footer className="site-footer">
-        <a href="#home" className="brand"><span className="brand-mark">Z<span>◇</span></span><span className="brand-name">ZIRCON<span>AI</span><small>PROJECT ACADEMY</small></span></a>
-        <span>© {new Date().getFullYear()} ZirconAI. Tous droits réservés.</span>
+      <footer className="zx-footer">
+        <a href="#home" className="zx-brand"><span className="zx-logo"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 29 9.5v13L16 30 3 22.5v-13Z" /><path d="M10 11h12l-12 10h12" /></svg></span><span className="zx-brand-text">Zircon<b>AI</b><small>Project Academy</small></span></a>
+        <span>© {new Date().getFullYear()} ZirconAI · Paris, France</span>
         <a href="mailto:contact@zirconai.fr">contact@zirconai.fr</a>
       </footer>
 
-      <div className="human-badge"><span className="badge-orb">Z◇</span><small>HUMAN-CENTRIC<br />AI</small><b>Actif</b><i>● SÉCURITÉ & ÉTHIQUE</i></div>
+      <ProjectAdvisor open={advisorOpen} onClose={closeAdvisor} />
 
       {(activeProduct || activeTraining || interestProduct) && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeModals(); }}>
@@ -327,22 +404,22 @@ export default function Home() {
             <button className="modal-close" onClick={closeModals} aria-label="Fermer">×</button>
             {activeProduct && (
               <>
-                <div className="section-kicker">ZIRCONAI / SOLUTION</div>
+                <div className="zx-kicker">ZirconAI · Solution</div>
                 <div className="modal-emblem">{activeProduct.symbol}</div>
-                <div className="product-category">{activeProduct.category}</div>
+                <div className="zx-cat">{activeProduct.category}</div>
                 <h2>{activeProduct.name}</h2>
-                <span className={activeProduct.status === "available" ? "status status-live" : "status"}>{activeProduct.status === "available" ? "DISPONIBLE" : "DISPONIBLE PROCHAINEMENT"}</span>
+                <span className={activeProduct.status === "available" ? "zx-badge live" : "zx-badge"}>{activeProduct.status === "available" ? <><span className="zx-dot" /> Disponible</> : "Disponible prochainement"}</span>
                 <p>{activeProduct.description}</p>
                 <h4>Modules et fonctionnalités</h4>
                 <ul className="module-list">{activeProduct.modules.map((module) => <li key={module}>{module}</li>)}</ul>
-                {activeProduct.status === "available" && activeProduct.url ? <a className="button button-gold" href={activeProduct.url} target="_blank" rel="noreferrer">Accéder au produit ↗</a> : <button className="button button-gold" onClick={() => { setInterestProduct(activeProduct); setActiveProduct(null); setFormState("idle"); }}>Être informé du lancement ↗</button>}
+                {activeProduct.status === "available" && activeProduct.url ? <a className="zx-btn zx-btn-primary" href={activeProduct.url} target="_blank" rel="noreferrer">Accéder au produit ↗</a> : <button className="zx-btn zx-btn-primary" onClick={() => { setInterestProduct(activeProduct); setActiveProduct(null); setFormState("idle"); }}>Être informé du lancement →</button>}
               </>
             )}
             {activeTraining && (
               <>
-                <div className="section-kicker">PROJECTACADEMY / FORMATION GRATUITE</div>
-                <div className={`modal-training-visual ${activeTraining.atmosphere}`}>{activeTraining.atmosphere === "cyber" ? "⌘ MATRIX / CYBER DEFENSE" : "✧ AI / FUTURE ARCHITECTURE"}</div>
-                <div className="training-eyebrow">{activeTraining.eyebrow} · DIMANCHES DE FÉVRIER 2027</div>
+                <div className="zx-kicker">ProjectAcademy · Formation gratuite</div>
+                <div className={`modal-training-visual ${activeTraining.atmosphere}`}>{activeTraining.atmosphere === "cyber" ? "⌘ CYBER DEFENSE · MODULE" : "✧ AI FUTURE ARCHITECTURE · MODULE"}</div>
+                <div className="zx-eyebrow">{activeTraining.eyebrow} · DIMANCHES DE FÉVRIER 2027</div>
                 <h2>{activeTraining.title}</h2>
                 <h4>{activeTraining.subtitle}</h4>
                 <p>{activeTraining.description}</p>
@@ -371,7 +448,7 @@ export default function Home() {
                     <label>Une question à nous poser ? (facultatif)<textarea name="question" rows={2} maxLength={1000} /></label>
                     <label className="consent"><input type="checkbox" name="consent" required /> J&apos;accepte que ZirconAI utilise ces informations pour traiter ma demande et me recontacter au sujet de cette formation. <a href="mailto:contact@zirconai.fr?subject=Confidentialit%C3%A9%20ProjectAcademy">En savoir plus</a>.</label>
                     {formMessage && <div className="form-feedback error">{formMessage}</div>}
-                    <button className="button button-gold" disabled={formState === "sending"}>{formState === "sending" ? "Envoi en cours…" : "Envoyer ma demande ↗"}</button>
+                    <button className="zx-btn zx-btn-primary" disabled={formState === "sending"}>{formState === "sending" ? "Envoi en cours…" : "Envoyer ma demande →"}</button>
                   </form>
                 )}
                 <p className="fine-print">Votre demande sera enregistrée sous réserve de disponibilité. La date, le créneau et le lien de participation seront confirmés par email. Aucun email automatique n&apos;est envoyé tant que le service de messagerie n&apos;est pas configuré.</p>
@@ -379,10 +456,10 @@ export default function Home() {
             )}
             {interestProduct && (
               <>
-                <div className="section-kicker">ZIRCONAI / FUTURE RELEASE</div>
+                <div className="zx-kicker">ZirconAI · Future release</div>
                 <div className="modal-emblem">{interestProduct.symbol}</div>
                 <h2>{interestProduct.name}</h2>
-                <span className="status">DISPONIBLE PROCHAINEMENT</span>
+                <span className="zx-badge">Disponible prochainement</span>
                 <p>Laissez-nous vos coordonnées si vous souhaitez être informé de l&apos;avancement et de la disponibilité de cette solution. Il ne s&apos;agit pas d&apos;une commande ni d&apos;une demande de démonstration.</p>
                 {formState === "success" ? <div className="form-feedback success">{formMessage}</div> : (
                   <form className="registration-form" onSubmit={submitInterest}>
@@ -390,7 +467,7 @@ export default function Home() {
                     <label>Email<input name="email" type="email" required maxLength={254} autoComplete="email" /></label>
                     <label className="consent"><input type="checkbox" name="consent" required /> J&apos;accepte d&apos;être recontacté au sujet du lancement de ce produit.</label>
                     {formMessage && <div className="form-feedback error">{formMessage}</div>}
-                    <button className="button button-gold" disabled={formState === "sending"}>{formState === "sending" ? "Envoi…" : "Être informé du lancement ↗"}</button>
+                    <button className="zx-btn zx-btn-primary" disabled={formState === "sending"}>{formState === "sending" ? "Envoi…" : "Être informé du lancement →"}</button>
                   </form>
                 )}
               </>

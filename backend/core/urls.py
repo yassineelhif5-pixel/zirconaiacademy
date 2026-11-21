@@ -3,9 +3,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .admin_api_views import AdminOverviewView, AdminRegistrationUpdateView, AdminUserUpdateView
 from .auth_views import MeView, RegisterView, LogoutView
-from .chat_views import ChatView
+from .chat_views import ChatView, ProjectAdvisorView
 from .google_auth_views import GoogleLoginView
 from .learning_views import LearningDashboardView
+from .proposal_views import AdminProposalUpdateView, ProjectProposalDetailView, ProjectProposalListCreateView
 from .views import ProductInterestCreateView, TrainingRegistrationCreateView, health
 
 urlpatterns = [
@@ -17,10 +18,14 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="auth-me"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("assistant/chat/", ChatView.as_view(), name="assistant-chat"),
+    path("assistant/project/", ProjectAdvisorView.as_view(), name="assistant-project"),
     path("learning/dashboard/", LearningDashboardView.as_view(), name="learning-dashboard"),
     path("admin/overview/", AdminOverviewView.as_view(), name="admin-overview"),
     path("admin/registrations/<int:registration_id>/", AdminRegistrationUpdateView.as_view(), name="admin-registration-update"),
     path("admin/users/<int:user_id>/", AdminUserUpdateView.as_view(), name="admin-user-update"),
+    path("admin/proposals/<int:proposal_id>/", AdminProposalUpdateView.as_view(), name="admin-proposal-update"),
+    path("project-proposals/", ProjectProposalListCreateView.as_view(), name="project-proposals"),
+    path("project-proposals/<int:proposal_id>/", ProjectProposalDetailView.as_view(), name="project-proposal-detail"),
     path("registrations/", TrainingRegistrationCreateView.as_view(), name="training-registration"),
     path("product-interests/", ProductInterestCreateView.as_view(), name="product-interest"),
 ]

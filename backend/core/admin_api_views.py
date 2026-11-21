@@ -10,7 +10,8 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import ProductInterest, TrainingRegistration
+from .models import ProductInterest, ProjectProposal, TrainingRegistration
+from .proposal_views import proposal_payload
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -46,7 +47,10 @@ class AdminOverviewView(APIView):
                 "pending": TrainingRegistration.objects.filter(status="received").count(),
                 "confirmed": TrainingRegistration.objects.filter(status="confirmed").count(),
                 "interests": ProductInterest.objects.count(),
+                "proposals": ProjectProposal.objects.count(),
+                "proposals_pending": ProjectProposal.objects.filter(status__in=["submitted", "reviewing"]).count(),
             },
+            "project_proposals": [proposal_payload(item, include_user=True) for item in ProjectProposal.objects.select_related("user")],
             "registrations": [registration_payload(item) for item in registrations],
             "product_interests": [{
                 "id": item.id, "product": item.product, "full_name": item.full_name,

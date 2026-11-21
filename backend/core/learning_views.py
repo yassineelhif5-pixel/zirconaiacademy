@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .admin_api_views import registration_payload
-from .models import ProductInterest, TrainingRegistration
+from .models import ProductInterest, ProjectProposal, TrainingRegistration
+from .proposal_views import proposal_payload
 
 
 class LearningDashboardView(APIView):
@@ -24,4 +25,5 @@ class LearningDashboardView(APIView):
                 "id": item.id, "product": item.product,
                 "created_at": item.created_at.isoformat(),
             } for item in interests],
+            "project_proposals": [proposal_payload(item) for item in ProjectProposal.objects.filter(user=request.user)],
         })
