@@ -64,7 +64,7 @@ CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin.star
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework_simplejwt.authentication.JWTAuthentication"],
-    "DEFAULT_THROTTLE_RATES": {"anon": "30/hour", "registration": "5/hour", "chat": "20/hour"},
+    "DEFAULT_THROTTLE_RATES": {"anon": "30/hour", "registration": "5/hour", "chat": "20/hour", "google_login": "10/minute"},
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle", "rest_framework.throttling.ScopedRateThrottle"],
     
 }
