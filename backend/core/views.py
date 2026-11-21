@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from .models import ProductInterest, TrainingRegistration
 from .serializers import ProductInterestSerializer, TrainingRegistrationSerializer
@@ -15,8 +15,16 @@ class TrainingRegistrationCreateView(generics.CreateAPIView):
     serializer_class = TrainingRegistrationSerializer
     permission_classes = [AllowAny]
 
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(user=user)
+
 
 class ProductInterestCreateView(generics.CreateAPIView):
     queryset = ProductInterest.objects.all()
     serializer_class = ProductInterestSerializer
     permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(user=user)
